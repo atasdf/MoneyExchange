@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, RefreshControl, ScrollView } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { itemsFetchData } from '../../modules/exchange/actions';
 import {
@@ -27,10 +27,15 @@ interface Props {
 const HomeScreen: React.FC<Props> = props => {
     const dispatch = useDispatch();
     const [value, setValue] = useState<string>('100');
+    const [refreshing, setRefreshing] = React.useState(false);
     const currency = useSelector((state: any) => {
         return state.exchange.currency;
     });
-    console.log(value);
+    const onRefresh = () => {
+        setRefreshing(true);
+        dispatch(itemsFetchData(currency));
+        setRefreshing(false);
+    };
     useEffect(() => {
         dispatch(itemsFetchData(currency));
     }, [currency]);
@@ -41,7 +46,16 @@ const HomeScreen: React.FC<Props> = props => {
         <View style={styles.root}>
             <DefaultInput value={value} onPress={setValue} />
             <Selector onTap={selectExchangeValue} unit={currency} />
-            <Item value={value} />
+            <ScrollView
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                    />
+                }
+            >
+                <Item value={value} />
+            </ScrollView>
         </View>
     );
 };
